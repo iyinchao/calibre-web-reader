@@ -1,5 +1,5 @@
-import { defineConfig, presetIcons } from 'unocss'
-import { presetWind3 } from '@unocss/preset-wind3'
+import { defineConfig, presetIcons } from 'unocss';
+import { presetWind3 } from '@unocss/preset-wind3';
 
 export default defineConfig({
   presets: [
@@ -9,4 +9,9 @@ export default defineConfig({
       warn: true,
     }),
   ],
-})
+  theme: {
+    colors: {
+      primary: [],
+    },
+  },
+});

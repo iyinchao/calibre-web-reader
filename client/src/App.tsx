@@ -1,30 +1,165 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { type BookInfo } from './utils/types';
+import { BookList } from './components/BookList';
+// import { View } from '../3rdparty/foliate-js/view.js';
+
+// import bookFile from '../test/我的第一本算法书 - [日]石田保辉.epub?url';
+
+// const getCSS = ({ spacing, justify, hyphenate }) => `
+//     @namespace epub "http://www.idpf.org/2007/ops";
+//     html {
+//         color-scheme: light dark;
+//         font-family: 'LXGW WenKai Screen';
+//     }
+//     /* https://github.com/whatwg/html/issues/5426 */
+//     @media (prefers-color-scheme: dark) {
+//         a:link {
+//             color: lightblue;
+//         }
+//     }
+//     p, li, blockquote, dd {
+//         line-height: ${spacing};
+//         text-align: ${justify ? 'justify' : 'start'};
+//         -webkit-hyphens: ${hyphenate ? 'auto' : 'manual'};
+//         hyphens: ${hyphenate ? 'auto' : 'manual'};
+//         -webkit-hyphenate-limit-before: 3;
+//         -webkit-hyphenate-limit-after: 2;
+//         -webkit-hyphenate-limit-lines: 2;
+//         hanging-punctuation: allow-end last;
+//         widows: 2;
+//     }
+//     /* prevent the above from overriding the align attribute */
+//     [align="left"] { text-align: left; }
+//     [align="right"] { text-align: right; }
+//     [align="center"] { text-align: center; }
+//     [align="justify"] { text-align: justify; }
+
+//     pre {
+//         white-space: pre-wrap !important;
+//     }
+//     aside[epub|type~="endnote"],
+//     aside[epub|type~="footnote"],
+//     aside[epub|type~="note"],
+//     aside[epub|type~="rearnote"] {
+//         display: none;
+//     }
+// `
 
 function Home() {
-  return <h2>Home</h2>
+  return <h2>Home</h2>;
 }
 
 function About() {
-  return <h2>About</h2>
+  return <h2>About</h2>;
 }
 
 function App() {
+  const stateRef = useRef<{
+    foliateInited: boolean;
+  }>({
+    foliateInited: false,
+  });
+
+  const [bookList, setBookList] = useState<BookInfo[]>([]);
+
+  useEffect(() => {
+    // if (!stateRef.current.foliateInited) {
+    //   console.log(View);
+    //   customElements.define('foliate-view', View);
+    //   const view = document.createElement('foliate-view');
+    //   document.body.append(view);
+    //   view.style.width = '100vw';
+    //   view.style.height = '100vh';
+    //   view.style.position = 'absolute';
+    //   view.style.left = '0';
+    //   view.style.top = '0';
+    //   view.addEventListener('relocate', e => {
+    //     console.log('location changed');
+    //     console.log(e.detail);
+    //   });
+    //   stateRef.current.foliateInited = true;
+    //   const loadBook = async function () {
+    //     const blob = await (await fetch(bookFile)).blob();
+    //     const file = new File([blob], '我的第一本算法书 - [日]石田保辉.epub');
+    //     console.log(blob);
+    //     await view.open(file);
+    //     view.addEventListener('load', () => {
+    //       console.log('load')
+    //     })
+    //     view.addEventListener('relocate', () => {
+    //       console.log('relocate')
+    //     })
+    //     const { book } = view
+    //     book.transformTarget?.addEventListener('data', ({ detail }) => {
+    //       detail.data = Promise.resolve(detail.data).catch(e => {
+    //         console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
+    //         return ''
+    //       })
+    //     })
+    //     view.renderer.setStyles?.(getCSS({
+    //       spacing: 1.4,
+    //       justify: true,
+    //       hyphenate: true,
+    //     }))
+    //     view.renderer.next();
+    //     console.log(view);
+    //     window.addEventListener('keydown', (e) => {
+    //       if (e.key === 'ArrowLeft') {
+    //         view.goLeft();
+    //       } else if (e.key === 'ArrowRight') {
+    //         view.goRight();
+    //       }
+    //     }, {
+    //       capture: true
+    //     })
+    //   }
+    //   loadBook();
+    // }
+  }, []);
+
+  // console.log(bookFile)
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const getBookList = async () => {
+      try {
+        const list = await fetch('/api/list', {
+          signal: abortController.signal,
+        });
+        const listData = await list.json();
+        return listData;
+      } catch (e) {
+        throw e;
+      }
+    };
+
+    getBookList().then(list => {
+      console.log(list);
+      setBookList(list);
+    });
+
+    return () => {
+      abortController.abort('cancel');
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <nav className="p-4 bg-gray-100">
-        <Link to="/" className="mr-4">
+        {/* <Link to="/" className="mr-4">
           Home
         </Link>
-        <Link to="/about">About</Link>
+        <Link to="/about">About</Link> */}
       </nav>
-      <div className="p-4">
+      <div className="text-primary-0">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/" element={<BookList books={bookList}></BookList>} />
+          <Route path="/read" element={<About />} />
         </Routes>
       </div>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,10 +1,11 @@
 // @ts-check
 
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
-import pluginReact from 'eslint-plugin-react'
-import pluginReactHooks from 'eslint-plugin-react-hooks'
-import eslintConfigPrettier from 'eslint-config-prettier'
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import pluginReact from 'eslint-plugin-react';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginReactRefresh from 'eslint-plugin-react-refresh';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   // Global ignores
@@ -20,14 +21,18 @@ export default tseslint.config(
     },
   },
 
-  // Client-specific configuration
+  // Client-specific configuration for App source files
   {
-    files: ['client/**/*.{ts,tsx}'],
+    files: ['client/src/**/*.{ts,tsx}'],
     plugins: {
       react: pluginReact,
       'react-hooks': pluginReactHooks,
+      'react-refresh': pluginReactRefresh,
     },
     languageOptions: {
+      parserOptions: {
+        project: 'client/tsconfig.app.json',
+      },
       globals: {
         ...globals.browser,
       },
@@ -42,6 +47,20 @@ export default tseslint.config(
       ...pluginReactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',
+      'react-refresh/only-export-components': 'warn',
+    },
+  },
+
+  // Client-specific configuration for config files
+  {
+    files: ['client/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        project: 'client/tsconfig.node.json',
+      },
+      globals: {
+        ...globals.node,
+      },
     },
   },
 
@@ -49,6 +68,9 @@ export default tseslint.config(
   {
     files: ['server/**/*.ts'],
     languageOptions: {
+      parserOptions: {
+        project: 'server/tsconfig.json',
+      },
       globals: {
         ...globals.node,
       },
@@ -57,4 +79,4 @@ export default tseslint.config(
 
   // Prettier configuration must be last
   eslintConfigPrettier
-)
+);
