@@ -3,14 +3,46 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 import { exec, locker } from './utils';
 
-// Load environment variables from .env file
-dotenv.config();
+console.log('entered');
+
+// --- Smart dotenv loading for development ---
+// In development, we load .env.example first as a base, then override with .env.
+// This ensures all required env vars have a default value.
+// In production, variables are expected to be provided by the environment (e.g., Docker).
+if (process.env.NODE_ENV === 'development') {
+  // 1. Load base configuration from .env.example.
+  dotenv.config({ path: path.resolve(__dirname, '../../.env.example') });
+
+  // 2. Load user-specific overrides from .env.
+  // The `override: true` flag ensures that any values in this file
+  // will overwrite the base configuration from the previous step.
+  dotenv.config({
+    path: path.resolve(__dirname, '../../.env'),
+    override: true,
+  });
+}
+
+let calibreLibraryPath = '';
+let calibreDbPath = '';
+if (process.env.NODE_ENV === 'development') {
+  if (process.env.CALIBRE_RUN_MODE === 'self') {
+    calibreLibraryPath = process.env.SELF_CALIBRE_LIBRARY_PATH ?? '';
+    calibreDbPath = process.env.SELF_CALIBRE_DB_PATH ?? 'calibredb';
+  } else if (process.env.CALIBRE_RUN_MODE === 'DooD') {
+    calibreLibraryPath = process.env.DOOD_CALIBRE_LIBRARY_PATH ?? '';
+    calibreDbPath = process.env.DOOD_CALIBRE_DB_PATH ?? 'calibredb';
+  } else {
+    calibreLibraryPath = process.env.HOST_CALIBRE_LIBRARY_PATH ?? '';
+    calibreDbPath = process.env.HOST_CALIBRE_DB_PATH ?? 'calibredb';
+  }
+} else {
+  // for production:
+  calibreLibraryPath = process.env.CALIBRE_LIBRARY_PATH ?? '';
+  calibreDbPath = process.env.CALIBRE_DB_PATH ?? 'calibredb';
+}
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-const calibreLibraryPath = process.env.CALIBRE_LIBRARY_PATH;
-const calibreDbPath = process.env.CALIBRE_DB_PATH;
+const port = process.env.SERVICE_PORT || 3000;
 
 (async () => {
   // do pre-checks:
@@ -20,9 +52,7 @@ const calibreDbPath = process.env.CALIBRE_DB_PATH;
       stdio: 'pipe',
     });
     if (code !== 0) {
-      console.error(
-        'Error: calibredb cli not found, please check CALIBRE_DB_PATH in your .env file.'
-      );
+      console.error('Error: calibredb cli not found.');
       process.exit(1);
     } else {
       console.log(`✅ calibredb Command Path: ${calibreDbPath}`);
@@ -34,9 +64,7 @@ const calibreDbPath = process.env.CALIBRE_DB_PATH;
       stdio: 'pipe',
     });
     if (code !== 0 || !calibreLibraryPath) {
-      console.error(
-        'Error: Calibre library path not found, please check CALIBRE_LIBRARY_PATH in your .env file.'
-      );
+      console.error('Error: Calibre library path not found.');
       process.exit(1);
     }
   }
@@ -49,9 +77,7 @@ const calibreDbPath = process.env.CALIBRE_DB_PATH;
       }
     );
     if (code !== 0) {
-      console.error(
-        'Error: Calibre library is not valid, please check CALIBRE_LIBRARY_PATH in your .env file.'
-      );
+      console.error('Error: Calibre library is invalid.');
       process.exit(1);
     } else {
       console.log(`✅ Calibre Library Path: ${calibreLibraryPath}`);
@@ -124,13 +150,14 @@ const calibreDbPath = process.env.CALIBRE_DB_PATH;
 
   // Serve client files in production
   if (process.env.NODE_ENV === 'production') {
-    const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');
+    const clientDistPath = path.join(__dirname, '../../client/dist');
     console.log(`Serving static files from: ${clientDistPath}`);
 
     app.use(express.static(clientDistPath));
 
     // For any other request, serve the index.html file
-    app.get('*', (req, res) => {
+    // see: https://expressjs.com/en/guide/migrating-5.html#path-syntax
+    app.get('/{*splat}', (req, res) => {
       res.sendFile(path.join(clientDistPath, 'index.html'));
     });
   }
@@ -145,4 +172,6 @@ const calibreDbPath = process.env.CALIBRE_DB_PATH;
       process.exit(1);
     }
   });
-})();
+})().catch(e => {
+  console.error(e);
+});

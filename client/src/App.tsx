@@ -1,7 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useMatch,
+  useNavigate,
+} from 'react-router-dom';
 import { type BookInfo } from './utils/types';
 import { BookList } from './components/BookList';
+import { Reader } from './components/Reader';
+import { AppContext } from './context';
 // import { View } from '../3rdparty/foliate-js/view.js';
 
 // import bookFile from '../test/我的第一本算法书 - [日]石田保辉.epub?url';
@@ -46,14 +55,6 @@ import { BookList } from './components/BookList';
 //     }
 // `
 
-function Home() {
-  return <h2>Home</h2>;
-}
-
-function About() {
-  return <h2>About</h2>;
-}
-
 function App() {
   const stateRef = useRef<{
     foliateInited: boolean;
@@ -62,6 +63,14 @@ function App() {
   });
 
   const [bookList, setBookList] = useState<BookInfo[]>([]);
+  const bookIdMap = useMemo(() => {
+    return bookList.reduce((acc, cur) => {
+      acc.set(cur.id, cur);
+      return acc;
+    }, new Map<number, BookInfo>());
+  }, [bookList]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // if (!stateRef.current.foliateInited) {
@@ -145,20 +154,36 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <nav className="p-4 bg-gray-100">
-        {/* <Link to="/" className="mr-4">
+    <AppContext.Provider value={{ bookList, bookIdMap }}>
+      <div className="w-screen h-[100dvh] flex flex-col">
+        <nav className="bg-gray-100 h-0">
+          {/* <Link to="/" className="mr-4">
           Home
         </Link>
         <Link to="/about">About</Link> */}
-      </nav>
-      <div className="text-primary-0">
-        <Routes>
-          <Route path="/" element={<BookList books={bookList}></BookList>} />
-          <Route path="/read" element={<About />} />
-        </Routes>
+        </nav>
+        <div className="text-primary-0 flex-1 min-h-0">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <BookList
+                  books={bookList}
+                  onOpenBook={id => {
+                    const bookInfo = bookIdMap.get(id);
+                    if (bookInfo) {
+                      // router go to /read
+                      navigate(`/read/${bookInfo?.id}`);
+                    }
+                  }}
+                ></BookList>
+              }
+            />
+            <Route path="/read/:bookId" element={<Reader />} />
+          </Routes>
+        </div>
       </div>
-    </BrowserRouter>
+    </AppContext.Provider>
   );
 }
 

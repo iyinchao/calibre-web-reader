@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  calibre-web-reader:
+    build: .
+    container_name: calibre-web-reader
+    restart: unless-stopped
+
+    # Load environment variables from the .env file in the project root.
+    # Docker Compose will automatically substitute variables below (e.g., ${BIND_PORT})
+    # with values from this file.
+    env_file:
+      - .env.example
+      - .env.self
+
+    ports:
+      # Dynamically map ports using variables from the .env file.
+      # BIND_PORT is the port on the host machine (outside the container).
+      # PORT is the port the application listens on inside the container.
+      # Example: If BIND_PORT=8080 and PORT=3000, the mapping will be 8080:3000.
+      - '5555:3000'
+
+    volumes:
+      # --- IMPORTANT ---
+      # This enables Docker-out-of-Docker (DooD) mode.
+      # It gives the container access to the host's Docker daemon.
+      # WARNING: This has significant security implications. Only use this if you
+      # trust the code running inside the container.
+      # - /var/run/docker.sock:/var/run/docker.sock
+
+      # --- ACTION REQUIRED ---
+      # Mount your Calibre library from the host machine into the container.
+      # You MUST replace `/path/to/your/calibre/library` with the actual, absolute path
+      # to your Calibre library on your computer (the host machine).
+      # The path on the right side (`/data/calibre-library`) is the path inside the container.
+      # This container path MUST match the value of one of the CALIBRE_LIBRARY_PATH variables
+      # in your .env file, depending on the run mode you choose.
+      - /Users/yinchao/Documents/Calibre_Library_backup:/path/to/your/calibre/library
+      - /Users/yinchao/Documents/Repo/_projects/calibre-web-reader/node_modules/.cache/__opt/calibre-dir:/opt/calibre-dir/
+
+networks:
+  default:
+    name: calibre-web-reader-network

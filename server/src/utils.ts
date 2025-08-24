@@ -28,6 +28,7 @@ export const exec = async function exec(
     processRef?: {
       value?: ChildProcess;
     };
+    throwOnError?: boolean;
   }
 ) {
   return new Promise<{ code: number | null; stdout?: string; stderr?: string }>(
@@ -40,6 +41,7 @@ export const exec = async function exec(
         stdio: 'inherit' as const,
         spawnOption: {},
         processRef: null,
+        throwOnError: false,
         ...options,
       };
 
@@ -96,10 +98,14 @@ export const exec = async function exec(
             stderr: stderrStr,
           };
         }
-        if (code === 0 && !hasError) {
+        if (opt.throwOnError === false) {
           resolveFunc(res);
         } else {
-          rejectFunc(res);
+          if (code === 0 && !hasError) {
+            resolveFunc(res);
+          } else {
+            rejectFunc(res);
+          }
         }
       });
     }
