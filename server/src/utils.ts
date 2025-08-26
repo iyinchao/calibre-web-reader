@@ -18,7 +18,7 @@ export const resolve = (...args: string[]) => {
   return path.join(_rootDir, paths);
 };
 
-export const exec = async function exec(
+export async function exec(
   command: string,
   options?: {
     dry?: boolean;
@@ -71,7 +71,7 @@ export const exec = async function exec(
 
       let stdoutStr = '';
       let stderrStr = '';
-      if (opt.stdio === 'pipe') {
+      if (opt.stdio === 'pipe' && !opt.processRef) {
         ps.stdout?.on('data', data => {
           stdoutStr += data.toString();
         });
@@ -110,7 +110,7 @@ export const exec = async function exec(
       });
     }
   );
-};
+}
 
 const lockMap = new Map<
   string,
@@ -144,3 +144,10 @@ export const locker = {
     return lockMap.get(key)?.promise ?? Promise.resolve();
   },
 };
+
+export async function execDooD(
+  container: string,
+  ...args: Parameters<typeof exec>
+) {
+  return exec(`docker exec ${container} ${args[0]}`, args[1]);
+}

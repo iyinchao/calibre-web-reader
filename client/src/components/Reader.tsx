@@ -5,7 +5,14 @@ import { AppContext } from '../context';
 // @ts-ignore
 import { View } from '../../3rdparty/foliate-js/view.js';
 
-const supportedBookFormat = ['pdf', 'epub', 'mobi', 'fb2', 'cbz'] as const;
+const supportedBookFormat = [
+  'pdf',
+  'epub',
+  'mobi',
+  'fb2',
+  'cbz',
+  'azw3',
+] as const;
 
 let isCustomElementInit = false;
 const initCustomElement = () => {

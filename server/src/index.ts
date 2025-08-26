@@ -1,9 +1,8 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 import path from 'path';
-import { exec, locker } from './utils';
-
-console.log('entered');
+import { exec as execRaw, execDooD, locker } from './utils';
+import { ChildProcess } from 'child_process';
 
 // --- Smart dotenv loading for development ---
 // In development, we load .env.example first as a base, then override with .env.
@@ -39,6 +38,17 @@ if (process.env.NODE_ENV === 'development') {
   // for production:
   calibreLibraryPath = process.env.CALIBRE_LIBRARY_PATH ?? '';
   calibreDbPath = process.env.CALIBRE_DB_PATH ?? 'calibredb';
+}
+
+let exec = execRaw;
+if (process.env.CALIBRE_RUN_MODE === 'DooD') {
+  console.log('Running in DooD mode');
+  exec = (...args) => {
+    return execDooD(
+      process.env.DOOD_CALIBRE_WEB_CONTAINER ?? 'calibre-web',
+      ...args
+    );
+  };
 }
 
 const app = express();
@@ -146,7 +156,59 @@ const port = process.env.SERVICE_PORT || 3000;
     }
   });
 
-  app.use('/api/library', express.static(calibreLibraryPath));
+  if (process.env.CALIBRE_RUN_MODE === 'DooD') {
+    app.get('/api/library/*filePath', async (req: Request, res: Response) => {
+      const requestFilePath = Array.isArray(req.params.filePath)
+        ? req.params.filePath.join('/')
+        : req.params.filePath;
+      const file = `${process.env.DOOD_CALIBRE_LIBRARY_PATH}/${requestFilePath}`;
+
+      const processRef: { value?: ChildProcess } = {};
+      exec(`cat "${file}"`, {
+        processRef: processRef,
+        stdio: 'pipe',
+      });
+      const ps = processRef.value;
+      if (!ps || !ps.stdout) {
+        res.status(500).send({
+          ok: false,
+          error: 'Failed to open file.',
+          errorDetail: `Failed open file: ${file}.`,
+        });
+        return;
+      }
+      ps.stdout.on('error', () => {
+        if (!res.headersSent) {
+          res.status(500).send({
+            ok: false,
+            error: 'Failed reading file.',
+            errorDetail: `Failed reading file: ${file}.`,
+          });
+        } else {
+          res.end();
+        }
+      });
+      ps.on('close', code => {
+        if (code !== 0) {
+          if (!res.headersSent) {
+            res.status(404).send({
+              ok: false,
+              error: 'File not found or could not be read.',
+              errorDetail: `Failed reading file: ${file}.`,
+            });
+          } else {
+            res.end();
+          }
+        }
+      });
+      res.setHeader('Content-Type', 'application/octet-stream');
+      ps.stdout.pipe(res);
+
+      // res.status(200).send({})
+    });
+  } else {
+    app.use('/api/library', express.static(calibreLibraryPath));
+  }
 
   // Serve client files in production
   if (process.env.NODE_ENV === 'production') {

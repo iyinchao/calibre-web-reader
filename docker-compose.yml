@@ -11,7 +11,7 @@ services:
     # with values from this file.
     env_file:
       - .env.example
-      - .env.self
+      - .env
 
     ports:
       # Dynamically map ports using variables from the .env file.
@@ -26,7 +26,7 @@ services:
       # It gives the container access to the host's Docker daemon.
       # WARNING: This has significant security implications. Only use this if you
       # trust the code running inside the container.
-      # - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
 
       # --- ACTION REQUIRED ---
       # Mount your Calibre library from the host machine into the container.
