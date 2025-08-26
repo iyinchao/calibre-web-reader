@@ -156,7 +156,10 @@ const port = process.env.SERVICE_PORT || 3000;
     }
   });
 
-  if (process.env.CALIBRE_RUN_MODE === 'DooD') {
+  if (
+    process.env.CALIBRE_RUN_MODE === 'DooD' &&
+    process.env.DOOD_CALIBRE_LIBRARY_FROM === 'outside'
+  ) {
     app.get('/api/library/*filePath', async (req: Request, res: Response) => {
       const requestFilePath = Array.isArray(req.params.filePath)
         ? req.params.filePath.join('/')
@@ -203,8 +206,6 @@ const port = process.env.SERVICE_PORT || 3000;
       });
       res.setHeader('Content-Type', 'application/octet-stream');
       ps.stdout.pipe(res);
-
-      // res.status(200).send({})
     });
   } else {
     app.use('/api/library', express.static(calibreLibraryPath));

@@ -19,6 +19,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# Ignore user docker-compose file
+docker-compose.yml
+
 # IDEs and editors
 .idea
 .vscode
