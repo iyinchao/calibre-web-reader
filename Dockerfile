@@ -40,7 +40,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install Docker CLI to enable Docker-out-of-Docker (DooD)
 # This only installs the client, not the full Docker daemon.
 # Using apt-get for Debian-based image
-RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl docker.io && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

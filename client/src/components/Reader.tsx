@@ -83,7 +83,9 @@ export const Reader = () => {
       viewTyped.renderer.next();
     };
 
-    loadBook();
+    loadBook().catch(e => {
+      console.log(e);
+    });
 
     return () => {
       renderEl.removeChild(view);

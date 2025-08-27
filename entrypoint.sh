@@ -29,8 +29,7 @@ if [ "$CALIBRE_RUN_MODE" = "self" ]; then
     echo "ℹ️ 'latest' version requested. Fetching the latest Calibre version number..."
     # Set frontend to noninteractive to prevent hangs and reduce noise
     export DEBIAN_FRONTEND=noninteractive
-    # Ensure curl is installed, then fetch the version, following redirects (-L).
-    apt-get update && apt-get install -y curl
+    # Get latest version
     LATEST_VERSION=$(curl -sLk https://calibre-ebook.com/downloads/latest_version)
 
     if [ -z "$LATEST_VERSION" ]; then
