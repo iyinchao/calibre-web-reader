@@ -9,16 +9,10 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 # Copy dependency definition files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY server/package.json ./server/
-COPY client/package.json ./client/
+COPY . .
 
 # Install server dependencies strictly based on the lockfile
 RUN pnpm install --frozen-lockfile && cd client/3rdparty/foliate-js && npm ci
-
-# Copy the rest of the source code
-# We copy server and tsconfig files needed for the build
-COPY . .
 
 # Build the client application first
 RUN pnpm --filter client build
