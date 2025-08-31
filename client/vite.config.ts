@@ -10,16 +10,16 @@ const foliateJsDir = path.resolve(__dirname, '3rdparty/foliate-js');
 const outputDir = path.resolve(__dirname, 'public/3rdparty/foliate-js');
 
 function installFoliateJs() {
-  console.log('Installing foliate-js...');
-  try {
-    execSync('npm install', {
-      cwd: foliateJsDir,
-      stdio: 'inherit',
-    });
-    console.log('foliate-js install complete.');
-  } catch (error) {
-    console.error('Failed to install foliate-js:', error);
-  }
+  // console.log('Installing foliate-js...');
+  // try {
+  //   execSync('npm install', {
+  //     cwd: foliateJsDir,
+  //     stdio: 'inherit',
+  //   });
+  //   console.log('foliate-js install complete.');
+  // } catch (error) {
+  //   console.error('Failed to install foliate-js:', error);
+  // }
 }
 
 function buildFoliateJs() {
