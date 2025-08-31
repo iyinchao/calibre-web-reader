@@ -12,7 +12,7 @@ const outputDir = path.resolve(__dirname, 'public/3rdparty/foliate-js');
 function installFoliateJs() {
   console.log('Installing foliate-js...');
   try {
-    execSync('pnpm install', {
+    execSync('npm install', {
       cwd: foliateJsDir,
       stdio: 'inherit',
     });
@@ -25,7 +25,7 @@ function installFoliateJs() {
 function buildFoliateJs() {
   console.log('Building foliate-js...');
   try {
-    execSync('pnpm install && pnpm run build', {
+    execSync('pnpm run build', {
       cwd: foliateJsDir,
       stdio: 'inherit',
     });

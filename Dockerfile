@@ -14,7 +14,7 @@ COPY server/package.json ./server/
 COPY client/package.json ./client/
 
 # Install server dependencies strictly based on the lockfile
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile && cd client/3rdparty/foliate-js && npm ci
 
 # Copy the rest of the source code
 # We copy server and tsconfig files needed for the build
