@@ -94,7 +94,8 @@ export const Reader = () => {
     viewTyped.addEventListener('relocate', () => {
       // console.log('relocate');
     });
-    viewTyped.addEventListener('click-background', e => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    viewTyped.addEventListener('click-background', (e: any) => {
       if (bgClickerRef.current) {
         // console.log('click background', e.detail);
         const { clientX, clientY } = e.detail;
@@ -128,7 +129,8 @@ export const Reader = () => {
         }
       }
     });
-    viewTyped.history.addEventListener('index-change', e => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    viewTyped.history.addEventListener('index-change', (e: any) => {
       console.log(e);
       setCanGoForward(viewTyped.history.canGoForward);
       setCanGoBack(viewTyped.history.canGoBack);
