@@ -11,9 +11,6 @@ import { type BookInfo } from './utils/types';
 import { BookList } from './components/BookList';
 import { Reader } from './components/Reader';
 import { AppContext } from './context';
-// import { View } from '../3rdparty/foliate-js/view.js';
-
-// import bookFile from '../test/我的第一本算法书 - [日]石田保辉.epub?url';
 
 // const getCSS = ({ spacing, justify, hyphenate }) => `
 //     @namespace epub "http://www.idpf.org/2007/ops";
@@ -65,9 +62,9 @@ function App() {
   const [bookList, setBookList] = useState<BookInfo[]>([]);
   const bookIdMap = useMemo(() => {
     return bookList.reduce((acc, cur) => {
-      acc.set(cur.id, cur);
+      acc.set(cur.uuid, cur);
       return acc;
-    }, new Map<number, BookInfo>());
+    }, new Map<BookInfo['uuid'], BookInfo>());
   }, [bookList]);
 
   const navigate = useNavigate();
@@ -173,7 +170,7 @@ function App() {
                     const bookInfo = bookIdMap.get(id);
                     if (bookInfo) {
                       // router go to /read
-                      navigate(`/read/${bookInfo?.id}`);
+                      navigate(`/read/${bookInfo?.uuid}`);
                     }
                   }}
                 ></BookList>

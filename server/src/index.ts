@@ -212,18 +212,18 @@ const port = process.env.SERVICE_PORT || 3000;
   }
 
   // Serve client files in production
-  if (process.env.NODE_ENV === 'production') {
-    const clientDistPath = path.join(__dirname, '../../client/dist');
-    console.log(`Serving static files from: ${clientDistPath}`);
+  // if (process.env.NODE_ENV === 'production') {
+  const clientDistPath = path.join(__dirname, '../../client/dist');
+  console.log(`Serving static files from: ${clientDistPath}`);
 
-    app.use(express.static(clientDistPath));
+  app.use(express.static(clientDistPath));
 
-    // For any other request, serve the index.html file
-    // see: https://expressjs.com/en/guide/migrating-5.html#path-syntax
-    app.get('/{*splat}', (req, res) => {
-      res.sendFile(path.join(clientDistPath, 'index.html'));
-    });
-  }
+  // For any other request, serve the index.html file
+  // see: https://expressjs.com/en/guide/migrating-5.html#path-syntax
+  app.get('/{*splat}', (req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+  // }
 
   const server = app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

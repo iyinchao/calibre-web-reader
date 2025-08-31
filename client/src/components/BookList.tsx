@@ -5,7 +5,7 @@ export interface BookListProps {
   className?: string;
   style?: React.CSSProperties;
   books: BookInfo[];
-  onOpenBook?: (id: number) => void;
+  onOpenBook?: (id: BookInfo['uuid']) => void;
 }
 
 export const BookList = ({
@@ -16,13 +16,13 @@ export const BookList = ({
 }: BookListProps) => {
   return (
     <div className="grid gap-16 lt-sm:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 p-8 cursor-pointer overflow-y-auto overflow-x-hidden">
-      {books.map(({ id, cover, title }) => {
+      {books.map(({ uuid, cover, title }) => {
         return (
           <div
-            key={id}
+            key={uuid}
             className="flex flex-col items-center gap-4"
             onClick={() => {
-              onOpenBook?.(id);
+              onOpenBook?.(uuid);
             }}
           >
             {/* border radius classname */}
