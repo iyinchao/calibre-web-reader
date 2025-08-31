@@ -25,7 +25,7 @@ function installFoliateJs() {
 function buildFoliateJs() {
   console.log('Building foliate-js...');
   try {
-    execSync('pnpm run build', {
+    execSync('npm run build', {
       cwd: foliateJsDir,
       stdio: 'inherit',
     });
