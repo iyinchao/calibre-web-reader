@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
+        with:
+          submodules: recursive # 拉取所有子模块
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
