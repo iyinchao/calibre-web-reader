@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { AppContext } from '../context';
 import type { BookTocType } from '../utils/types';
 import { TocItem, type TocItemProps } from './TocItem';
+import { TocTree } from './TocTree';
 
 // import { View } from '/3rdparty/foliate-js/view.js?url';
 
@@ -41,7 +42,7 @@ export const Reader = () => {
   const [canGoForward, setCanGoForward] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [toc, setToc] = useState<(TocItemProps & { id: number })[]>([]);
+  const [toc, setToc] = useState<TocItemProps[]>([]);
 
   useEffect(() => {
     if (!showCotrols) {
@@ -99,6 +100,8 @@ export const Reader = () => {
       if (bgClickerRef.current) {
         // console.log('click background', e.detail);
         const { clientX, clientY } = e.detail;
+        console.log(clientX, clientY);
+
         const candidates = bgClickerRef.current.querySelectorAll(
           '[data-click-receiver]'
         );
@@ -208,28 +211,19 @@ export const Reader = () => {
       >
         <div
           className={clsx(
-            'h-full pt-[40px] absolute left-0 min-w-60 max-w-80 w-30vw bg-[rgba(180,180,180,0.5)] transition-all duration-200 shadow backdrop-blur-10',
+            'h-100vh h-[100dvh] pt-[40px] absolute left-0 min-w-60 max-w-80 w-30vw bg-[rgba(180,180,180,0.5)] transition-all duration-200 shadow backdrop-blur-10',
             {
               ['translate-x--100%']: !showMenu,
               ['translate-x-0 pointer-events-auto']: showMenu,
             }
           )}
         >
-          <div className="overflow-y-auto overflow-x-hidden h-full">
-            <div className="ml--20px">
-              {toc.map(item => {
-                return (
-                  <TocItem
-                    key={item.id}
-                    {...item}
-                    onClick={href => {
-                      viewRef.current?.goTo(href);
-                    }}
-                  ></TocItem>
-                );
-              })}
-            </div>
-          </div>
+          <TocTree
+            toc={toc}
+            onClick={href => {
+              viewRef.current?.goTo(href);
+            }}
+          ></TocTree>
         </div>
         <div className="flex gap-2 h-fit">
           <div
