@@ -1,8 +1,11 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs/promises';
+import crypto from 'crypto';
 import { exec as execRaw, execDooD, locker } from './utils';
 import { ChildProcess } from 'child_process';
+import { Stats } from 'fs';
 
 // --- Smart dotenv loading for development ---
 // In development, we load .env.example first as a base, then override with .env.
@@ -155,6 +158,55 @@ const port = process.env.SERVICE_PORT || 3000;
       });
     }
   });
+
+  // Middleware to handle both file serving and metadata requests for the library
+  app.use(
+    '/api/library',
+    async (req: Request, res: Response, next: express.NextFunction) => {
+      // Check for the meta query parameter
+      if (req.query.meta === 'true') {
+        const filePath = req.path; // req.path already contains the path part after /api/library
+        if (!filePath) {
+          return res.status(400).send({ error: 'File path is required.' });
+        }
+
+        // Prevent directory traversal attacks
+        const safeFilePath = path
+          .normalize(decodeURI(filePath))
+          .replace(/^(\.\.[/\\])+/, '');
+        const fullPath = path.join(calibreLibraryPath, safeFilePath);
+
+        try {
+          const stats = await fs.stat(fullPath);
+          if (!stats.isFile()) {
+            return res.status(404).send({ error: 'Path is not a file.' });
+          }
+          const size = stats.size;
+          const format = path.extname(fullPath).replace('.', '');
+          const fileBuffer = await fs.readFile(fullPath);
+          const hash = crypto
+            .createHash('sha256')
+            .update(fileBuffer)
+            .digest('hex');
+
+          return res.status(200).send({
+            size,
+            format,
+            bookHash: hash,
+          });
+        } catch (error: unknown) {
+          if ((error as { code: string }).code === 'ENOENT') {
+            return res.status(404).send({ error: 'File not found.' });
+          }
+          console.error(`Error processing file ${fullPath}:`, error);
+          return res.status(500).send({ error: 'Internal server error.' });
+        }
+      } else {
+        // If no meta query, pass to the next middleware (e.g., static file server)
+        next();
+      }
+    }
+  );
 
   if (
     process.env.CALIBRE_RUN_MODE === 'DooD' &&

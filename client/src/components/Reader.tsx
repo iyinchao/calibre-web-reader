@@ -5,6 +5,13 @@ import { AppContext } from '../context';
 import type { BookTocType } from '../utils/types';
 import { TocItem, type TocItemProps } from './TocItem';
 import { TocTree } from './TocTree';
+import {
+  addBookCacheWithManagement,
+  addBookInfo,
+  getBookCache,
+  getBookInfo,
+  touchBook,
+} from '../db';
 
 // import { View } from '/3rdparty/foliate-js/view.js?url';
 
@@ -140,10 +147,37 @@ export const Reader = () => {
     });
 
     const loadBook = async () => {
-      const blobData = await (await fetch(supportedFormats[0])).blob();
-      const file = new File([blobData], bookInfo.title);
+      const bookFileMeta = await (
+        await fetch(`${supportedFormats[0]}?meta=true`)
+      ).json();
 
-      await viewTyped.open(file);
+      const bookCache = await getBookCache(bookInfo.uuid, bookFileMeta.format);
+      let bookFile: File;
+      if (bookCache && bookCache.bookHash === bookFileMeta.bookHash) {
+        bookFile = new File([bookCache.data], bookFileMeta.name);
+      } else {
+        const bookBlob = await (await fetch(supportedFormats[0])).blob();
+        bookFile = new File([bookBlob], bookFileMeta.name);
+        await addBookCacheWithManagement({
+          bookId: bookInfo.uuid,
+          format: bookFileMeta.format,
+          bookHash: bookFileMeta.bookHash,
+          size: bookFileMeta.size,
+          data: bookBlob,
+        });
+      }
+
+      await viewTyped.open(bookFile);
+
+      if (await getBookInfo(bookInfo.uuid)) {
+        await touchBook(bookInfo.uuid);
+      } else {
+        await addBookInfo({
+          id: bookInfo.uuid,
+          lastOpenedAt: new Date(),
+        });
+      }
+
       viewTyped.renderer.next();
     };
 

@@ -13,6 +13,7 @@
     "@unocss/preset-wind3": "^66.4.2",
     "@unocss/reset": "^66.4.2",
     "clsx": "^2.1.1",
+    "dexie": "^4.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.0",
